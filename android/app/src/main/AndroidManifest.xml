@@ -20,15 +20,7 @@
             <meta-data
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
-              android:name="com.google.firebase.messaging.default_notification_icon"
-              android:resource="@drawable/ic_notification"
               />
-            <meta-data
-                android:name="firebase_messaging_auto_init_enabled"
-                android:value="false" />
-            <meta-data
-                android:name="firebase_analytics_collection_enabled"
-                android:value="false" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -40,9 +32,6 @@
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
             android:name="flutterEmbedding"
-            android:value="2"
-            android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="@string/default_notification_channel_id"/>
-            />
+            android:value="2" />
     </application>
 </manifest>
