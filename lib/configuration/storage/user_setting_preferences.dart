@@ -9,26 +9,13 @@ class UserSettingsPreferences {
 
   static void setAppVersion(String val) => appPref.write('AppVersion', val);
 
-  static String get deviceId => appPref.read('deviceId') ?? '';
 
-  static void setDeviceID(String val) => appPref.write('deviceId', val);
+  static int get getWalpaper => appPref.read('walpaper')?? 0 ;
 
-  static String get getUrlService => appPref.read('serviceUrl') ?? '';
+  static void setWalpaper(int val) => appPref.write('walpaper', val);
 
-  static void setUrlService(String val) => appPref.write('serviceUrl', val);
+  static String get savePassword => appPref.read('savePassword');
 
-  static void saveStringList(String key, List<String> valueList) {
-    String jsonString = jsonEncode(valueList);
-    appPref.write(key, jsonString);
-  }
+  static void setSavePassword(String val) => appPref.write('savePassword', val);
 
-  static List<String> getStringList(String key) {
-    String jsonString = appPref.read(key) ?? '[]';
-    List<dynamic> jsonList = jsonDecode(jsonString);
-    return jsonList.map((item) => item.toString()).toList();
-  }
-
-  static List<String> getAllUrls() {
-    return getStringList('urls');
-  }
 }

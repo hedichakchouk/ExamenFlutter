@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:examenflutteriit/configuration/storage/user_setting_preferences.dart';
 import 'package:examenflutteriit/utils/animations.dart';
 import 'package:examenflutteriit/utils/text_utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -25,10 +26,12 @@ class _LoginPageState extends State<LoginPage> {
   bool isLoading = false;
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   ValueNotifier userCredential = ValueNotifier('');
-bool passwordVisible = false ;
+  bool passwordVisible = false;
+  bool rememberPassword = false;
   @override
   void initState() {
     passwordVisible = false;
+    password.text.isNotEmpty? password.text =   UserSettingsPreferences.savePassword :'';
   }
 
   signInWithEmailAndPassword(BuildContext context) async {
@@ -64,7 +67,7 @@ bool passwordVisible = false ;
   bool showOption = false;
   @override
   Widget build(BuildContext context) {
-    return  WillPopScope(
+    return WillPopScope(
       onWillPop: () => showExitPopup(context),
       child: Scaffold(
         floatingActionButton: Container(
@@ -86,6 +89,7 @@ bool passwordVisible = false ;
                                   onTap: () {
                                     setState(() {
                                       selectedIndex = index;
+                                      UserSettingsPreferences.setWalpaper(selectedIndex);
                                     });
                                   },
                                   child: CircleAvatar(
@@ -133,7 +137,7 @@ bool passwordVisible = false ;
                           child: CircleAvatar(
                             radius: 30,
                             backgroundImage: AssetImage(
-                              bgList[selectedIndex],
+                              bgList[UserSettingsPreferences.getWalpaper],
                             ),
                           ),
                         ),
@@ -146,7 +150,7 @@ bool passwordVisible = false ;
           height: double.infinity,
           width: double.infinity,
           decoration: BoxDecoration(
-            image: DecorationImage(image: AssetImage(bgList[selectedIndex]), fit: BoxFit.fill),
+            image: DecorationImage(image: AssetImage(bgList[UserSettingsPreferences.getWalpaper]), fit: BoxFit.fill),
           ),
           alignment: Alignment.center,
           child: Container(
@@ -222,15 +226,18 @@ bool passwordVisible = false ;
                                 return null;
                               },
                               style: const TextStyle(color: Colors.white),
-                              decoration:   InputDecoration(
+                              decoration: InputDecoration(
                                 suffixIcon: IconButton(
-                                  icon:   Icon(passwordVisible? Icons.lock:Icons.lock_open,
-                                  color: Colors.white,
-                                ), onPressed: () {
-                                  setState(() {
-                                    passwordVisible = !passwordVisible;
-                                  });
-                                },),
+                                  icon: Icon(
+                                    passwordVisible ? Icons.lock : Icons.lock_open,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      passwordVisible = !passwordVisible;
+                                    });
+                                  },
+                                ),
                                 fillColor: Colors.white,
                                 border: InputBorder.none,
                               ),
@@ -239,10 +246,13 @@ bool passwordVisible = false ;
                           const Spacer(),
                           Row(
                             children: [
-                              Container(
-                                height: 15,
-                                width: 15,
-                                color: Colors.white,
+                              Checkbox(
+                                value: rememberPassword,
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    rememberPassword = value!;
+                                  });
+                                },
                               ),
                               const SizedBox(
                                 width: 10,
@@ -259,6 +269,9 @@ bool passwordVisible = false ;
                           InkWell(
                             onTap: () {
                               if (formkey.currentState!.validate()) {
+                                if(rememberPassword){
+                                  UserSettingsPreferences.setSavePassword(password.text);
+                                }
                                 signInWithEmailAndPassword(context);
                               }
                             },
@@ -267,13 +280,14 @@ bool passwordVisible = false ;
                               width: double.infinity,
                               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30)),
                               alignment: Alignment.center,
-                              child:  isLoading
+                              child: isLoading
                                   ? const CircularProgressIndicator(
-                                color: Colors.red,
-                              ) :TextUtil(
-                                text: "Log In",
-                                color: Colors.black,
-                              ),
+                                      color: Colors.red,
+                                    )
+                                  : TextUtil(
+                                      text: "Log In",
+                                      color: Colors.black,
+                                    ),
                             ),
                           ),
                           const Spacer(),
@@ -344,12 +358,10 @@ Future<bool> signOutFromGoogle() async {
   }
 }
 
-
 Future<bool> showExitPopup(BuildContext context) async {
   return (await showDialog(
-    context: context,
-    builder: (context) =>
-        AlertDialog(
+        context: context,
+        builder: (context) => AlertDialog(
           title: const Text('Exit App'),
           content: const Text(
             'Do you really want to exit the app?',
@@ -371,6 +383,6 @@ Future<bool> showExitPopup(BuildContext context) async {
             ),
           ],
         ),
-  )) ??
+      )) ??
       false;
 }
