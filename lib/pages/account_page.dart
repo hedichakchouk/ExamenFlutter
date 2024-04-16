@@ -1,5 +1,8 @@
+import 'package:examenflutteriit/main.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 
 class AccountPage extends StatefulWidget {
   AccountPage({super.key});
@@ -15,12 +18,26 @@ Color tAccentColor = Colors.red;
 class _AccountPageState extends State<AccountPage> {
   @override
   Widget build(BuildContext context) {
-    var isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    bool isDark = themeProvider.themeData.brightness == Brightness.dark;
     return Scaffold(
+      backgroundColor: isDark ? Colors.white : Colors.black87,
       appBar: AppBar(
-        leading: IconButton(onPressed: () => (), icon: const Icon(LineAwesomeIcons.angle_left)),
-        title: Text('tProfile', style: Theme.of(context).textTheme.headline4),
-        actions: [IconButton(onPressed: () {}, icon: Icon(isDark ? LineAwesomeIcons.sun : LineAwesomeIcons.moon))],
+        backgroundColor: isDark ? Colors.white : Colors.black87,
+        title: Text('tProfile',
+            style: TextStyle(
+              color: isDark ? Colors.black87 : Colors.white,
+            )),
+        actions: [
+          IconButton(
+              onPressed: () {
+                themeProvider.toggleTheme();
+              },
+              icon: Icon(
+                isDark ? LineAwesomeIcons.sun : LineAwesomeIcons.moon,
+                color: isDark ? Colors.black87 : Colors.white,
+              ))
+        ],
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -54,8 +71,12 @@ class _AccountPageState extends State<AccountPage> {
                 ],
               ),
               const SizedBox(height: 10),
-              Text('tProfileHeading', style: Theme.of(context).textTheme.headline4),
-              Text('tProfileSubHeading', style: Theme.of(context).textTheme.bodyText2),
+              Text('tProfileHeading',    style: TextStyle(
+                color: isDark ? Colors.black87 : Colors.white,
+              )),
+              Text('tProfileSubHeading',    style: TextStyle(
+                color: isDark ? Colors.black87 : Colors.white,
+              )),
               const SizedBox(height: 20),
 
               /// -- BUTTON
@@ -65,26 +86,23 @@ class _AccountPageState extends State<AccountPage> {
                   onPressed: () => (),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: tPrimaryColor, side: BorderSide.none, shape: const StadiumBorder()),
-                  child: Text('tEditProfile', style: TextStyle(color: tDarkColor)),
+                  child: Text('tEditProfile',   style: TextStyle(
+                    color: isDark ? Colors.black87 : Colors.white,
+                  )),
                 ),
               ),
               const SizedBox(height: 30),
               const Divider(),
               const SizedBox(height: 10),
 
-              /// -- MENU
-              ProfileMenuWidget(title: "Settings", icon: LineAwesomeIcons.cog, onPress: () {}),
-              ProfileMenuWidget(title: "Billing Details", icon: LineAwesomeIcons.wallet, onPress: () {}),
-              ProfileMenuWidget(title: "User Management", icon: LineAwesomeIcons.user_check, onPress: () {}),
-              const Divider(),
-              const SizedBox(height: 10),
-              ProfileMenuWidget(title: "Information", icon: LineAwesomeIcons.info, onPress: () {}),
               ProfileMenuWidget(
                   title: "Logout",
-                  icon: LineAwesomeIcons.alternate_sign_out,
+                  icon: LineAwesomeIcons.alternate_sign_in,
                   textColor: Colors.red,
                   endIcon: false,
-                  onPress: () {
+                  onPress: () async {
+                    await FirebaseAuth.instance.signOut();
+
                     // defaultDialog(
                     //   title: "LOGOUT",
                     //   titleStyle: const TextStyle(fontSize: 20),

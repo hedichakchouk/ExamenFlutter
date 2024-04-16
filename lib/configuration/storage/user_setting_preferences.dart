@@ -18,4 +18,14 @@ class UserSettingsPreferences {
 
   static void setSavePassword(String val) => appPref.write('savePassword', val);
 
+  static void setLanguage(int val) => appPref.write('language', val);
+
+  static int get getLanguage {
+    if (appPref.read('language') == null) {
+      setLanguage(0);
+      appPref.writeIfNull('language', 0);
+    }
+    return appPref.read('language');
+  }
+
 }

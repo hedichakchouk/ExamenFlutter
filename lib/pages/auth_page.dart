@@ -1,6 +1,5 @@
-import 'package:examenflutteriit/pages/home_page.dart';
+import 'package:examenflutteriit/components/custom_nav_bar.dart';
 import 'package:examenflutteriit/pages/login_or_signUp.dart';
-import 'package:examenflutteriit/pages/login_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -19,9 +18,9 @@ class AuthGate extends StatelessWidget {
             );
           } else {
             if (snapshot.hasData) {
-              return HomePage();
+              return const CustomNavBar();
             } else {
-              return LoginAndSignUp();
+              return const LoginAndSignUp();
             }
           }
         },
