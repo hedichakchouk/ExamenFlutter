@@ -33,92 +33,109 @@ class _SettingsPageState extends State<SettingsPage> {
     Locale currentLocale = Provider.of<LocaleProvider>(context).locale;
     final themeProvider = Provider.of<ThemeProvider>(context);
     bool isDark = themeProvider.themeData.brightness == Brightness.dark;
-    return SafeArea(
-      child: Scaffold(
-           body: SettingsList(
-            lightTheme: SettingsThemeData(
-                titleTextColor: isDark ? Colors.black87 : Colors.white,
-                settingsListBackground: isDark ? Colors.white : Colors.black87,
-                settingsSectionBackground: isDark ? Colors.black87 : Colors.white),
-            physics: const BouncingScrollPhysics(),
-            applicationType: ApplicationType.cupertino,
-            platform: DevicePlatform.iOS,
-            sections: [
-              SettingsSection(
-                  title: Text(
-                    'qrCode',
-                    style: TextStyle(color: isDark ? Colors.black87 : Colors.white),
-                  ),
-                  tiles: [
-                    SettingsTile(
-                      onPressed: (BuildContext value) {},
-                      trailing: const Icon(Icons.qr_code_outlined, color: Colors.black),
-                      title: const Text('qrCode', style: TextStyle(color: Colors.black)),
-                      description: Text(context.l10n.settings),
-                    ),
-                  ]),
-              SettingsSection(
-                title: Text(context.l10n.close),
-                tiles: [
-                  SettingsTile.navigation(
-                    trailing: Row(
-                      children: [
-                        Text(currentLocale.countryCode ?? "!", style: const TextStyle(color: Colors.black45)),
-                        const Icon(Icons.arrow_forward_ios),
-                      ],
-                    ),
-                    onPressed: (context) {
-                      showCupertinoModalPopup<void>(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return Container(
-                            height: 200,
-                            padding: const EdgeInsets.only(bottom: 15),
-                            color: Colors.white,
-                            child: CupertinoPicker(
-                              magnification: 1.22,
-                              squeeze: 1.2,
-                              useMagnifier: true,
-                              itemExtent: 32,
-                              scrollController: FixedExtentScrollController(
-                                initialItem: selectedLanguageIndex,
-                              ),
-                              onSelectedItemChanged: (int index) {
-                                Provider.of<LocaleProvider>(context, listen: false).locale = languages[index];
-                                GetStorage box = GetStorage('USER_SETTINGS');
-                                box.write('locale', languages[index].languageCode);
-                              },
-                              children: List<Widget>.generate(languages.length, (int index) {
-                                return Center(
-                                  child: Text(languages[index].toString()),
-                                );
-                              }),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                    title: Text(context.l10n.enteretablissement),
-                    description: Text(context.l10n.designation),
-                  ),
-                ],
-              ),
-              SettingsSection(
-                title: Text(context.l10n.account),
+    return Scaffold(
+        appBar: AppBar(
+          backgroundColor: isDark ? Colors.white : Colors.black87,
+          centerTitle: true,
+          title: Text('Settings Page ',
+              style: TextStyle(
+                color: isDark ? Colors.black87 : Colors.white,
+              )),
+        ),
+        body: SettingsList(
+          lightTheme: SettingsThemeData(
+              titleTextColor: isDark ? Colors.black87 : Colors.white,
+              settingsListBackground: isDark ? Colors.white : Colors.black87,
+               settingsSectionBackground: isDark ? Colors.black87 : Colors.white),
+          physics: const BouncingScrollPhysics(),
+          applicationType: ApplicationType.cupertino,
+          platform: DevicePlatform.iOS,
+          sections: [
+            SettingsSection(title: const Text('Dark Mode'), tiles: <SettingsTile>[
+              SettingsTile.switchTile(
+                onToggle: (value) {
+                  themeProvider.toggleTheme();
+                },
+                initialValue: !isDark,
+                leading: Icon(Icons.format_paint),
+                title: Text('Enable custom theme',style :  TextStyle(color: isDark? Colors.white : Colors.black87,)),
+              )
+            ]),
+            SettingsSection(
+                title: Text(
+                  'qrCode',
+                  style: TextStyle(color: isDark ? Colors.black87 : Colors.white),
+                ),
                 tiles: [
                   SettingsTile(
-                    onPressed: (_) async {
-                      CustomAlertDialog().showAlertDialog(_);
-                    },
-                    trailing: const Icon(Icons.logout, color: Colors.red),
-                    title: Text(context.l10n.logOut, style: const TextStyle(color: Colors.red)),
-                    description: Text(context.l10n.logOutDesc),
+                    onPressed: (BuildContext value) {},
+                    trailing:   Icon(Icons.qr_code_outlined, color : isDark? Colors.white : Colors.black87,),
+                    title:   Text('qrCode', style :  TextStyle(color: isDark? Colors.white : Colors.black87,)),
+                    description: Text(context.l10n.settings),
                   ),
-                ],
-              ),
-            ],
-          )),
-    );
+                ]),
+            SettingsSection(
+              title: Text(context.l10n.close),
+              tiles: [
+                SettingsTile.navigation(
+                  value: Text('English'),
+                  trailing: Row(
+                    children: [
+                      Text(currentLocale.countryCode ?? "!", style:   TextStyle(color: isDark? Colors.white : Colors.black87,)),
+                        Icon(Icons.arrow_forward_ios,color: isDark? Colors.white : Colors.black87,),
+                    ],
+                  ),
+                  onPressed: (context) {
+                    showCupertinoModalPopup<void>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return Container(
+                          height: 200,
+                          padding: const EdgeInsets.only(bottom: 15),
+                          color: Colors.white,
+                          child: CupertinoPicker(
+                            magnification: 1.22,
+                            squeeze: 1.2,
+                            useMagnifier: true,
+                            itemExtent: 32,
+                            scrollController: FixedExtentScrollController(
+                              initialItem: selectedLanguageIndex,
+                            ),
+                            onSelectedItemChanged: (int index) {
+                              Provider.of<LocaleProvider>(context, listen: false).locale = languages[index];
+                              GetStorage box = GetStorage('USER_SETTINGS');
+                              box.write('locale', languages[index].languageCode);
+                            },
+                            children: List<Widget>.generate(languages.length, (int index) {
+                              return Center(
+                                child: Text(languages[index].toString()),
+                              );
+                            }),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  title: Text(context.l10n.enteretablissement,style:   TextStyle(color: isDark? Colors.white : Colors.black87,)),
+                  description: Text(context.l10n.designation),
+                ),
+              ],
+            ),
+            SettingsSection(
+              title: Text(context.l10n.account),
+              tiles: [
+                SettingsTile(
+                  onPressed: (_) async {
+                    CustomAlertDialog().showAlertDialog(_);
+                  },
+                  trailing: const Icon(Icons.logout, color: Colors.red),
+                  title: Text(context.l10n.logOut, style: const TextStyle(color: Colors.red)),
+                  description: Text(context.l10n.logOutDesc),
+                ),
+              ],
+            ),
+          ],
+        ));
   }
 }
 

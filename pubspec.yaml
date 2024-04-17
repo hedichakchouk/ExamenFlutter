@@ -31,6 +31,8 @@ dependencies:
   syncfusion_flutter_datepicker: ^25.1.40
   lottie:
   http:
+  image_picker: ^1.1.0
+
   flutter_localizations:
     sdk: flutter
 

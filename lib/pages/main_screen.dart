@@ -1,12 +1,11 @@
-import 'package:examenflutteriit/components/calendar.dart';
 import 'package:examenflutteriit/data/model/studient_model.dart';
 import 'package:examenflutteriit/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class MainScreen extends StatefulWidget {
   MainScreen({super.key});
@@ -33,7 +32,7 @@ class _MainScreenState extends State<MainScreen> {
               child: Column(
                 children: <Widget>[
                   TextFormField(
-                    decoration: InputDecoration(labelText: "Matricule"),
+                    decoration: InputDecoration(labelText: "Matricule*", hintStyle: TextStyle(color: Colors.green)),
                     keyboardType: TextInputType.number,
                     onSaved: (value) => student.matricule = int.tryParse(value ?? ''),
                     validator: (value) => value!.isEmpty ? 'Required' : null,
@@ -64,11 +63,11 @@ class _MainScreenState extends State<MainScreen> {
                     }).toList(),
                     validator: (value) => value == null ? 'Required' : null,
                   ),
-                  ElevatedButton(
-                    onPressed: () => showCalendar(
-                        context, DateRangePickerSelectionMode.single, (value) => changeDateCallback(value, "")),
-                    child: Text('Select Date'),
-                  )
+                  // ElevatedButton(
+                  //   onPressed: () => showCalendar(
+                  //       context, DateRangePickerSelectionMode.single, (value) => changeDateCallback(value, "")),
+                  //   child: Text('Select Date'),
+                  // )
                 ],
               ),
             ),
@@ -85,7 +84,6 @@ class _MainScreenState extends State<MainScreen> {
               onPressed: () {
                 if (formKey.currentState!.validate()) {
                   formKey.currentState!.save();
-                  // You can now save the student or do something else with the data
                   Navigator.of(context).pop();
                 }
               },
@@ -94,6 +92,17 @@ class _MainScreenState extends State<MainScreen> {
         );
       },
     );
+  }
+
+  Future<void> deleteStudent(int matricule) async {
+    final response = await http.delete(Uri.parse('http://10.0.2.2:3000/api/students/$matricule'));
+    if (response.statusCode == 200) {
+      setState(() {
+        ListStudents = fetchStudents();
+      });
+    } else {
+      throw Exception('Failed to delete student');
+    }
   }
 
   @override
@@ -108,12 +117,15 @@ class _MainScreenState extends State<MainScreen> {
     bool isDark = themeProvider.themeData.brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: isDark ? Colors.white : Colors.black87,
-      floatingActionButton: FloatingActionButton(onPressed: openAddStudentDialog, child: const Icon(Icons.add)),
+      floatingActionButton: FloatingActionButton(onPressed: openAddStudentDialog, child: const Icon(Icons.add),backgroundColor: Colors.brown.shade50),
       appBar: AppBar(
-        title: Text('Students List'),
+        backgroundColor: isDark ? Colors.white : Colors.transparent,
+
+        title: Text('Students List',style: TextStyle(color:  isDark?Colors.black87:Colors.white),),
+        centerTitle: true,
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.refresh),
+            icon: Icon(Icons.refresh,color: isDark?Colors.black87:Colors.white,),
             onPressed: () {
               setState(() {
                 ListStudents = fetchStudents();
@@ -137,26 +149,58 @@ class _MainScreenState extends State<MainScreen> {
                 return Card(
                   elevation: 5,
                   margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  color: isDark?Colors.green.shade200:Colors.white,
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      backgroundColor: isDark?Colors.brown.shade50:Colors.green.shade100,
                       child: Text(student.nom!.substring(0, 1)),
                     ),
-                    title: Text(student.nom!),
-                    subtitle: Text(student.prenom!),
+                    title: Text('${student.nom!} ${student.prenom!}',style: TextStyle(color:  isDark?Colors.white:Colors.black87),),
+                    subtitle: Text(student.gender!,style: TextStyle(color:  isDark?Colors.black:Colors.black87)),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
                         IconButton(
-                          icon: Icon(Icons.edit),
+                          icon: Icon(
+                            Icons.edit,
+                            color: isDark? Colors.black87:Colors.green,
+                          ),
                           onPressed: () {
                             // Implement your edit action
                           },
                         ),
                         IconButton(
-                          icon: Icon(Icons.delete),
+                          icon: Icon(
+                            Icons.delete_sharp,
+                            color:  isDark? Colors.black87:Colors.red ,
+                          ),
                           onPressed: () {
-                            // Implement your delete action
+                            // Show confirmation dialog before deleting
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text("Confirm Delete"),
+                                  content: Text("Are you sure you want to delete this student?"),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(false), // Cancel button
+                                      child: Text("Cancel"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop(true); // Close dialog
+                                        deleteStudent(student.matricule!); // Call delete method
+                                      },
+                                      child: Text(
+                                        "Delete",
+                                        style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
                           },
                         ),
                       ],
