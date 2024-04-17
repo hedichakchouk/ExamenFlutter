@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -19,6 +20,8 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   late int selectedLanguageIndex;
+  String generatedUrl="https://allmylinks.com/hedi-chakchouk";
+  ScrollController scrollControllerQr = ScrollController();
   @override
   void initState() {
     super.initState();
@@ -27,6 +30,71 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   final user = FirebaseAuth.instance.currentUser;
+
+  void generatedQr() {
+    showDialog(
+      context:  context ,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(15)),
+          ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text.rich(
+                TextSpan(
+                  text: 'Qr Code :',
+                  style: TextStyle(
+                    fontFamily: 'SFProDisplay',
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  icon: const Icon(color: Colors.black, Icons.close))
+            ],
+          ),
+          content: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.40,
+              width: 150,
+              child:  SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  children: [
+                    Center(
+                      child: QrImageView(
+                        data: generatedUrl ,
+                        version: QrVersions.auto,
+                        size: 200.0,
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        // printPdf();
+                      },
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text("Generate a pdf "),
+                          Icon(Icons.picture_as_pdf)
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              )
+          ),
+
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +136,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 tiles: [
                   SettingsTile(
-                    onPressed: (BuildContext value) {},
+                    onPressed: (BuildContext value) {generatedQr();},
                     trailing:   Icon(Icons.qr_code_outlined, color : isDark? Colors.white : Colors.black87,),
                     title:   Text('qrCode', style :  TextStyle(color: isDark? Colors.white : Colors.black87,)),
                     description: Text(context.l10n.settings),

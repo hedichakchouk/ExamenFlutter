@@ -14,6 +14,7 @@ class AccountPage extends StatefulWidget {
 Color tPrimaryColor = Colors.blue;
 Color tDarkColor = Colors.black;
 Color tAccentColor = Colors.red;
+final user = FirebaseAuth.instance.currentUser;
 
 class _AccountPageState extends State<AccountPage> {
   @override
@@ -28,7 +29,6 @@ class _AccountPageState extends State<AccountPage> {
             SizedBox(
               height: 50,
             ),
-
             /// -- IMAGE
             Stack(
               children: [
@@ -56,7 +56,7 @@ class _AccountPageState extends State<AccountPage> {
               ],
             ),
             const SizedBox(height: 10),
-            Text('tProfileHeading',
+            Text(user!.email.toString(),
                 style: TextStyle(
                   color: isDark ? Colors.black87 : Colors.white,
                 )),
@@ -82,7 +82,6 @@ class _AccountPageState extends State<AccountPage> {
             const SizedBox(height: 30),
             const Divider(),
             const SizedBox(height: 10),
-
             ProfileMenuWidget(
                 title: "Logout",
                 icon: LineAwesomeIcons.alternate_sign_in,
@@ -90,7 +89,6 @@ class _AccountPageState extends State<AccountPage> {
                 endIcon: false,
                 onPress: () async {
                   await FirebaseAuth.instance.signOut();
-
                   // defaultDialog(
                   //   title: "LOGOUT",
                   //   titleStyle: const TextStyle(fontSize: 20),

@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:examenflutteriit/configuration/storage/user_setting_preferences.dart';
 import 'package:examenflutteriit/utils/animations.dart';
 import 'package:examenflutteriit/utils/text_utils.dart';
@@ -25,13 +26,15 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController password = TextEditingController();
   bool isLoading = false;
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+
   ValueNotifier userCredential = ValueNotifier('');
   bool passwordVisible = false;
   bool rememberPassword = false;
+
   @override
   void initState() {
     passwordVisible = false;
-    password.text.isNotEmpty? password.text =   UserSettingsPreferences.savePassword :'';
+    password.text.isNotEmpty ? password.text = UserSettingsPreferences.savePassword : '';
   }
 
   signInWithEmailAndPassword(BuildContext context) async {
@@ -47,19 +50,18 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         isLoading = false;
       });
-      if (e.code == 'user-not-found') {
-        scaffoldKey.currentState?.showBottomSheet(
-          (context) {
-            return const SnackBar(content: Text('No user found for that email.')); // Show SnackBar
-          },
-        );
-      } else if (e.code == 'wrong-password') {
-        scaffoldKey.currentState?.showBottomSheet(
-          (context) {
-            return const SnackBar(content: Text('Wrong password provided for that user.'));
-          },
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        showCloseIcon: false,
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        content: AwesomeSnackbarContent(
+          title: 'Opps!',
+          message: e.code,
+          contentType: ContentType.failure,
+        ),
+        duration: const Duration(seconds: 3),
+      ));
     }
   }
 
@@ -269,7 +271,7 @@ class _LoginPageState extends State<LoginPage> {
                           InkWell(
                             onTap: () {
                               if (formkey.currentState!.validate()) {
-                                if(rememberPassword){
+                                if (rememberPassword) {
                                   UserSettingsPreferences.setSavePassword(password.text);
                                 }
                                 signInWithEmailAndPassword(context);
@@ -282,7 +284,7 @@ class _LoginPageState extends State<LoginPage> {
                               alignment: Alignment.center,
                               child: isLoading
                                   ? const CircularProgressIndicator(
-                                      color: Colors.red,
+                                      color: Colors.black,
                                     )
                                   : TextUtil(
                                       text: "Log In",
@@ -344,7 +346,6 @@ Future<dynamic> signInWithGoogle() async {
 
     return await FirebaseAuth.instance.signInWithCredential(credential);
   } on Exception catch (e) {
-// TODO
     print('exception->$e');
   }
 }
@@ -375,7 +376,7 @@ Future<bool> showExitPopup(BuildContext context) async {
               child: const Text('No'),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(primary: Colors.red, onPrimary: Colors.white),
+              style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Colors.red),
               onPressed: () {
                 SystemNavigator.pop();
               },

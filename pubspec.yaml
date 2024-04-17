@@ -31,7 +31,10 @@ dependencies:
   syncfusion_flutter_datepicker: ^25.1.40
   lottie:
   http:
-  image_picker: ^1.1.0
+  image_picker:
+  qr_flutter: ^4.1.0
+
+
 
   flutter_localizations:
     sdk: flutter
@@ -78,4 +81,5 @@ flutter:
   assets:
     - assets/images/google_icon.png
     - assets/
+    - assets/lottie/
 

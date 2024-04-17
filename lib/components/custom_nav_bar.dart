@@ -1,5 +1,6 @@
 import 'package:examenflutteriit/main.dart';
 import 'package:examenflutteriit/pages/account_page.dart';
+import 'package:examenflutteriit/pages/dashboard_page.dart';
 import 'package:examenflutteriit/pages/main_screen.dart';
 import 'package:examenflutteriit/pages/settings_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -22,7 +23,7 @@ class _CustomNavBarState extends State<CustomNavBar> {
   final controller = PersistentTabController(initialIndex: 0);
 
   List<Widget> buildScreens() {
-    return [SettingsPage(), MainScreen(),AccountPage() ];
+    return [SettingsPage(), MainScreen(),DashboardPage(),AccountPage() ];
   }
 
 
@@ -46,6 +47,14 @@ class _CustomNavBarState extends State<CustomNavBar> {
           inactiveIcon:   Icon(CupertinoIcons.home,  color:isDark? Colors.grey:Colors.white),
           icon: const Icon(CupertinoIcons.home, color: Colors.black),
           title: ("Home"),
+          activeColorPrimary: isDark? CupertinoColors.activeGreen : CupertinoColors.label ,
+          inactiveColorPrimary: CupertinoColors.systemGrey,
+        ),
+        PersistentBottomNavBarItem(
+          activeColorSecondary: Colors.black,
+          inactiveIcon:   Icon(CupertinoIcons.wand_stars,  color:isDark? Colors.grey:Colors.white),
+          icon: const Icon(CupertinoIcons.wand_stars, color: Colors.black),
+          title: ("Dashboard"),
           activeColorPrimary: isDark? CupertinoColors.activeGreen : CupertinoColors.label ,
           inactiveColorPrimary: CupertinoColors.systemGrey,
         ),
