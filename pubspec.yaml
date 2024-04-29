@@ -29,6 +29,7 @@ dependencies:
   settings_ui: ^2.0.2
   line_awesome_flutter: ^2.0.0
   syncfusion_flutter_datepicker: ^25.1.40
+  fl_chart: ^0.67.0
   lottie:
   http:
   image_picker:
