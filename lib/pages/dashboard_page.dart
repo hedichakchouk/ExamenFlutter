@@ -34,29 +34,29 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  List<PieChartSectionData> showingSections() {
+  List<PieChartSectionData> showingSections(bool isDark) {
     final int total = maleCount + femaleCount;
     return [
       PieChartSectionData(
-        color: Colors.blue,
+        color: isDark?Colors.black:Colors.white,
         value: maleCount.toDouble(),
         title: 'Male $maleCount',
         radius: 50,
         titleStyle: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: const Color(0xffffffff),
+          color: isDark?Colors.white:Colors.black,
         ),
       ),
       PieChartSectionData(
-        color: Colors.pink,
+        color: Colors.green,
         value: femaleCount.toDouble(),
         title: 'Female $femaleCount',
         radius: 50,
         titleStyle: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: const Color(0xffffffff),
+          color: isDark?Colors.white:Colors.black,
         ),
       ),
     ];
@@ -84,7 +84,7 @@ class _DashboardPageState extends State<DashboardPage> {
             borderData: FlBorderData(show: false),
             sectionsSpace: 0,
             centerSpaceRadius: 80,
-            sections: showingSections(),
+            sections: showingSections(isDark),
           ),
         ) : CircularProgressIndicator(),
       ),
