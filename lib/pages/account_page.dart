@@ -1,6 +1,7 @@
 import 'package:examenflutteriit/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -15,8 +16,45 @@ Color tPrimaryColor = Colors.blue;
 Color tDarkColor = Colors.black;
 Color tAccentColor = Colors.red;
 final user = FirebaseAuth.instance.currentUser;
+final displayName = user!.displayName;
+final email = user!.email;
+final photoURL = user!.photoURL;
+final emailVerified = user!.emailVerified;
+TextEditingController nameController = TextEditingController();
+final ImagePicker picker = ImagePicker();
+XFile? imageFile;
 
 class _AccountPageState extends State<AccountPage> {
+  @override
+  void initState() {
+    super.initState();
+    if (user != null) {
+      nameController.text = user!.displayName ?? "";
+    }
+  }
+
+  Future<void> updateDisplayName() async {
+    if (user != null) {
+      await user!.updateProfile(displayName: nameController.text);
+      await user!.reload();
+      print("Display name updated to: ${user!.displayName}");
+    }
+  }
+
+  Future<void> pickImage(ImageSource source) async {
+    try {
+      final pickedFile = await picker.pickImage(source: source);
+      if (pickedFile != null) {
+        setState(() {
+          imageFile = pickedFile;
+         user!.updateProfile(photoURL: imageFile!.path);
+        });
+      }
+    } catch (e) {
+      print("Failed to pick image: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -29,38 +67,48 @@ class _AccountPageState extends State<AccountPage> {
             SizedBox(
               height: 50,
             ),
+
             /// -- IMAGE
-            Stack(
-              children: [
-                SizedBox(
-                  width: 120,
-                  height: 120,
-                  child: ClipRRect(
-                      borderRadius: BorderRadius.circular(100),
-                      child: const Image(image: AssetImage('assets/teacher.png'))),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    width: 35,
-                    height: 35,
-                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), color: tPrimaryColor),
-                    child: const Icon(
-                      LineAwesomeIcons.alternate_pencil,
-                      color: Colors.black,
-                      size: 20,
+            InkWell(
+              onTap: () {
+                pickImage(ImageSource.camera);
+              },
+              child: Stack(
+                children: [
+                  SizedBox(
+                    width: 120,
+                    height: 120,
+                    child: ClipRRect(
+                        borderRadius: BorderRadius.circular(100),
+                        child: const Image(image: AssetImage('assets/teacher.png'))),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 35,
+                      height: 35,
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), color: tPrimaryColor),
+                      child: const Icon(
+                        LineAwesomeIcons.alternate_pencil,
+                        color: Colors.black,
+                        size: 20,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
+            Text(user!.displayName!,
+                style: TextStyle(
+                  color: isDark ? Colors.black87 : Colors.white,
+                )),
             const SizedBox(height: 10),
             Text(user!.email.toString(),
                 style: TextStyle(
                   color: isDark ? Colors.black87 : Colors.white,
                 )),
-            Text('tProfileSubHeading',
+            Text(user!.displayName.toString(),
                 style: TextStyle(
                   color: isDark ? Colors.black87 : Colors.white,
                 )),
@@ -70,7 +118,22 @@ class _AccountPageState extends State<AccountPage> {
             SizedBox(
               width: 200,
               child: ElevatedButton(
-                onPressed: () => (),
+                onPressed: () async {
+                  User? user = FirebaseAuth.instance.currentUser;
+                  if (user != null) {
+                    try {
+                      await user.updateProfile(displayName: nameController.text);
+                      await user.reload();
+                      user = FirebaseAuth.instance.currentUser;
+                      print(user);
+                      print("Display name updated to: ${user?.displayName}");
+                    } catch (e) {
+                      print("Failed to update display name: $e");
+                    }
+                  } else {
+                    print("No user logged in");
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                     backgroundColor: tPrimaryColor, side: BorderSide.none, shape: const StadiumBorder()),
                 child: Text('tEditProfile',
@@ -80,6 +143,27 @@ class _AccountPageState extends State<AccountPage> {
               ),
             ),
             const SizedBox(height: 30),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextFormField(
+                decoration: InputDecoration(labelText: 'Edit Display Name'),
+                onTap: () {},
+                controller: nameController,
+                style: TextStyle(
+                  color: isDark ? Colors.black87 : Colors.white,
+                ),
+              ),
+            ),
+            ProfileMenuWidget(
+                title: "recieve email to reset password ",
+                icon: LineAwesomeIcons.mail_bulk,
+                textColor: Colors.red,
+                endIcon: false,
+                onPress: () async {
+                  await FirebaseAuth.instance
+                      .sendPasswordResetEmail(email: user!.email!)
+                      .then((value) => FirebaseAuth.instance.signOut());
+                }),
             const Divider(),
             const SizedBox(height: 10),
             ProfileMenuWidget(

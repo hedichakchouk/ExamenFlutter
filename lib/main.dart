@@ -62,7 +62,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
 
       ),
-      locale: localeProvider.locale, // Here the locale is fetched from LocaleProvider
+      locale: localeProvider.locale,
 
       localizationsDelegates: const [
         AppLocalizations.delegate,

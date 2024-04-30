@@ -54,6 +54,7 @@ class _DashboardPageState extends State<DashboardPage> {
         value: maleCount.toDouble(),
         title: 'Male $maleCount',
         radius: 50,
+        badgePositionPercentageOffset: BorderSide.strokeAlignCenter,
         titleStyle: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
@@ -82,7 +83,7 @@ class _DashboardPageState extends State<DashboardPage> {
     return Scaffold(
       backgroundColor: isDark ? Colors.white : Colors.black87,
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.white : Colors.black87,
+        backgroundColor: isDark ? Colors.white : Colors.transparent,
         centerTitle: true,
         title: Text('DashBoard Page',
             style: TextStyle(
@@ -127,9 +128,10 @@ class _DashboardPageState extends State<DashboardPage> {
               final femaleCount = snapshot.data!['femaleCount']!;
               return Center(
                 child: PieChart(
+                  swapAnimationCurve: Curves.easeOutQuint,
                   PieChartData(
-                    pieTouchData: PieTouchData(longPressDuration: Duration(milliseconds: 0)),
-                    borderData: FlBorderData(show: false),
+                    pieTouchData: PieTouchData(longPressDuration: Duration(milliseconds:10)),
+                    borderData: FlBorderData(show: true),
                     sectionsSpace: 0,
                     centerSpaceRadius: 80,
                     sections: showingSections(maleCount, femaleCount, isDark),
