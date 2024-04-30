@@ -1,14 +1,19 @@
+import 'dart:io';
+
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:csv/csv.dart';
+import 'package:examenflutteriit/components/calendar.dart';
 import 'package:examenflutteriit/components/lottie/lottie_animation.dart';
 import 'package:examenflutteriit/data/model/studient_model.dart';
 import 'package:examenflutteriit/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:intl/intl.dart';
 
 class MainScreen extends StatefulWidget {
   MainScreen({super.key});
@@ -23,12 +28,63 @@ class _MainScreenState extends State<MainScreen> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   StudentModel student = StudentModel();
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-
+  final TextEditingController dateController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     ListStudents = fetchStudents();
+  }
+
+  Future<List<StudentModel>> fetchStudents() async {
+    final response = await http.get(Uri.parse('http://10.0.2.2:3000/api/students'));
+    print(response.toString());
+    if (response.statusCode == 200) {
+      List jsonResponse = json.decode(response.body);
+      return jsonResponse.map((data) => StudentModel.fromJson(data)).toList();
+    } else {
+      throw Exception('Failed to load students');
+    }
+  }
+
+  Future<bool> updateStudent(StudentModel student) async {
+    try {
+      final response = await http.put(
+        Uri.parse('http://10.0.2.2:3000/api/students/${student.matricule}'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          'matricule': student.matricule,
+          'nom': student.nom,
+          'prenom': student.prenom,
+          'dateOfBirth': student.dateOfBirth,
+          'gender': student.gender,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('Student updated successfully');
+        return true;
+      } else {
+        print('Failed to update student. Status code: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('Error updating student: $e');
+      return false;
+    }
+  }
+
+  Future<StudentModel> fetchStudentDetails(int matricule) async {
+    final url = Uri.parse('http://10.0.2.2:3000/api/students/$matricule');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      return StudentModel.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load student with matricule $matricule. Status code: ${response.statusCode}');
+    }
   }
 
   void openAddStudentDialog() {
@@ -59,6 +115,24 @@ class _MainScreenState extends State<MainScreen> {
                     onSaved: (value) => student.prenom = value,
                     validator: (value) => value!.isEmpty ? 'Required' : null,
                   ),
+                  TextFormField(
+                    controller: dateController,
+                    decoration: InputDecoration(labelText: "Date of Birth"),
+                    readOnly: true,
+                    onTap: () async {
+                      final DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(1900),
+                        lastDate: DateTime.now(),
+                      );
+                      if (pickedDate != null) {
+                        String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+                        dateController.text = formattedDate;
+                      }
+                    },
+                    validator: (value) => value!.isEmpty ? 'Required' : null,
+                  ),
                   DropdownButtonFormField(
                     decoration: InputDecoration(labelText: "Gender"),
                     value: student.gender,
@@ -75,11 +149,6 @@ class _MainScreenState extends State<MainScreen> {
                     }).toList(),
                     validator: (value) => value == null ? 'Required' : null,
                   ),
-                  // ElevatedButton(
-                  //   onPressed: () => showCalendar(
-                  //       context, DateRangePickerSelectionMode.single, (value) => changeDateCallback(value, "")),
-                  //   child: Text('Select Date'),
-                  // )
                 ],
               ),
             ),
@@ -97,7 +166,7 @@ class _MainScreenState extends State<MainScreen> {
                 if (formKey.currentState!.validate()) {
                   formKey.currentState!.save();
                   addStudent(student.matricule!, student.nom!, student.prenom!, DateTime.now().toString(),
-                      student.gender!, '2023-09-28T22:00:00.000Z');
+                      student.gender!, dateController.text);
                   Navigator.of(context).pop();
                   setState(() {
                     ListStudents = fetchStudents();
@@ -111,8 +180,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Future<void> addStudent(
-      int matricule, String nom, String prenom, String dateInscription, String gender, String dateOfBirth) async {
+  Future<void> addStudent(int matricule, String nom, String prenom, String dateInscription, String gender, String dateOfBirth) async {
     try {
       final response = await http.put(
         Uri.parse('http://10.0.2.2:3000/api/students'),
@@ -125,7 +193,7 @@ class _MainScreenState extends State<MainScreen> {
           'prenom': prenom,
           'dateInscription': dateInscription,
           'gender': gender,
-          'dateOfBirth': ""
+          'dateOfBirth': dateOfBirth
         }),
       );
 
@@ -186,7 +254,66 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  Future<void> sendEmail(String filePath) async {
+    final Email email = Email(
+      body: 'Attached is the list of students',
+      subject: 'List of Students',
+      recipients: ['hedichakchoukk@gmail.com'],
+      attachmentPaths: [filePath],
+      isHTML: false,
+    );
 
+    await FlutterEmailSender.send(email);
+  }
+
+  createCSV() async {
+    List<StudentModel> list = await fetchStudents() ;
+    List<List<dynamic>> finalList = [];
+    for (var element in list) {
+      List<dynamic> tempList = [];
+      tempList.add(element.matricule);
+      tempList.add(element.nom);
+      tempList.add(element.prenom);
+      tempList.add(element.dateInscription);
+      tempList.add(element.dateOfBirth);
+      tempList.add(element.gender);
+       finalList.add(tempList);
+    }
+    await getCSVAndSendEmail(finalList).then((value) => { sendEmail(value)});
+
+  }
+
+
+  Future<String> getCSVAndSendEmail(List associateList) async {
+    List<List<dynamic>> rows = <List<dynamic>>[];
+    List<dynamic> row = [];
+    row.add("Matricule");
+    row.add("First Name");
+    row.add("Name");
+    row.add("date Inscription");
+    row.add("Date of Birth");
+    row.add("Gender");
+    rows.add(row);
+    for (var element in associateList) {
+      List<dynamic> row = [];
+      row.add(element[0]);
+      row.add(element[1]);
+      row.add(element[2]);
+      row.add(element[3]);
+      row.add(element[4]);
+      row.add(element[5] );
+      rows.add(row);
+    }
+
+
+    String csv = const ListToCsvConverter().convert(rows);
+    Directory directory = await getApplicationDocumentsDirectory();
+    File csvFile = File("${directory.path}/students.csv");
+    await csvFile.writeAsString(csv);
+
+    return csvFile.path;
+
+  }
 
 
   @override
@@ -199,6 +326,12 @@ class _MainScreenState extends State<MainScreen> {
           onPressed: openAddStudentDialog, backgroundColor: Colors.brown.shade50, child: const Icon(Icons.add)),
       appBar: AppBar(
         backgroundColor: isDark ? Colors.white : Colors.transparent,
+        leading: IconButton(
+          icon: Icon(Icons.share, color: isDark ? Colors.black87 : Colors.white),
+          onPressed: () {
+            createCSV();
+          },
+        ),
         title: Text(
           'Students List',
           style: TextStyle(color: isDark ? Colors.black87 : Colors.white),
@@ -311,7 +444,27 @@ class _MainScreenState extends State<MainScreen> {
                                                 TextFormField(
                                                   initialValue: student.dateOfBirth,
                                                   decoration: InputDecoration(labelText: "Date of Birth"),
-                                                  onSaved: (value) => student.dateOfBirth = value,
+                                                  readOnly: true,
+                                                  onTap: () {
+                                                    TextFormField(
+                                                      controller: dateController,
+                                                      decoration: InputDecoration(labelText: "Date of Birth"),
+                                                      onTap: () async {
+                                                        final DateTime? pickedDate = await showDatePicker(
+                                                          context: context,
+                                                          initialDate: DateTime.now(),
+                                                          firstDate: DateTime(1900),
+                                                          lastDate: DateTime.now(),
+                                                        );
+                                                        if (pickedDate != null) {
+                                                          String formattedDate =
+                                                              DateFormat('yyyy-MM-dd').format(pickedDate);
+                                                          dateController.text = formattedDate;
+                                                        }
+                                                      },
+                                                      validator: (value) => value!.isEmpty ? 'Required' : null,
+                                                    );
+                                                  },
                                                 ),
                                                 DropdownButtonFormField(
                                                   decoration: InputDecoration(labelText: "Gender"),
@@ -365,8 +518,7 @@ class _MainScreenState extends State<MainScreen> {
                                   );
                                 } catch (error) {
                                   print('Failed to fetch student details: $error');
-                                }
-                                ;
+                                };
                               }),
                           IconButton(
                             icon: Icon(
@@ -419,65 +571,6 @@ class _MainScreenState extends State<MainScreen> {
         },
       ),
     );
-  }
-}
-
-changeDateCallback(value, String dateDebutOfCurrentDay) async {
-  if (dateDebutOfCurrentDay.isNotEmpty) {}
-}
-
-Future<List<StudentModel>> fetchStudents() async {
-  final response = await http.get(Uri.parse('http://10.0.2.2:3000/api/students'));
-  print(response.toString());
-  if (response.statusCode == 200) {
-    List jsonResponse = json.decode(response.body);
-    return jsonResponse.map((data) => StudentModel.fromJson(data)).toList();
-  } else {
-    throw Exception('Failed to load students');
-  }
-}
-
-Future<bool> updateStudent(StudentModel student) async {
-  try {
-    final response = await http.put(
-      Uri.parse('http://10.0.2.2:3000/api/students/${student.matricule}'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, dynamic>{
-        'matricule': student.matricule,
-        'nom': student.nom,
-        'prenom': student.prenom,
-        'dateOfBirth': student.dateOfBirth,
-        'gender': student.gender,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      print('Student updated successfully');
-      return true;
-    } else {
-      print('Failed to update student. Status code: ${response.statusCode}');
-      return false;
-    }
-  } catch (e) {
-    print('Error updating student: $e');
-    return false;
-  }
-}
-
-Future<StudentModel> fetchStudentDetails(int matricule) async {
-  final url = Uri.parse('http://10.0.2.2:3000/api/students/$matricule');
-  final response = await http.get(url);
-
-  if (response.statusCode == 200) {
-    // If the server did return a 200 OK response,
-    // then parse the JSON.
-    return StudentModel.fromJson(jsonDecode(response.body));
-  } else {
-    // If the server did not return a 200 OK response,
-    // then throw an exception.
-    throw Exception('Failed to load student with matricule $matricule. Status code: ${response.statusCode}');
   }
 }
 

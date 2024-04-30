@@ -83,7 +83,7 @@ class _CustomNavBarState extends State<CustomNavBar> {
       hideNavigationBarWhenKeyboardShows: true,
       decoration: NavBarDecoration(
         borderRadius: BorderRadius.circular(10.0),
-        colorBehindNavBar:isDark? Colors.white:Colors.red,
+        colorBehindNavBar:isDark? Colors.transparent:Colors.transparent,
       ),
       popAllScreensOnTapOfSelectedTab: true,
       popActionScreens: PopActionScreensType.all,
