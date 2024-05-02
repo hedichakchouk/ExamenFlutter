@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:examenflutteriit/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -21,8 +23,10 @@ final email = user!.email;
 final photoURL = user!.photoURL;
 final emailVerified = user!.emailVerified;
 TextEditingController nameController = TextEditingController();
+TextEditingController phoneController = TextEditingController();
 final ImagePicker picker = ImagePicker();
 XFile? imageFile;
+String? imagePath;
 
 class _AccountPageState extends State<AccountPage> {
   @override
@@ -47,7 +51,8 @@ class _AccountPageState extends State<AccountPage> {
       if (pickedFile != null) {
         setState(() {
           imageFile = pickedFile;
-         user!.updateProfile(photoURL: imageFile!.path);
+          imagePath = pickedFile.path;
+          user!.updateProfile(photoURL: imageFile!.path);
         });
       }
     } catch (e) {
@@ -64,31 +69,35 @@ class _AccountPageState extends State<AccountPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(
+            const SizedBox(
               height: 50,
             ),
-
-            /// -- IMAGE
-            InkWell(
-              onTap: () {
-                pickImage(ImageSource.camera);
-              },
-              child: Stack(
-                children: [
-                  SizedBox(
-                    width: 120,
-                    height: 120,
-                    child: ClipRRect(
-                        borderRadius: BorderRadius.circular(100),
-                        child: const Image(image: AssetImage('assets/teacher.png'))),
+            Stack(
+              children: [
+                SizedBox(
+                  width: 120,
+                  height: 120,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(100),
+                    child: imagePath == null
+                        ? const Image(image: AssetImage('assets/teacher.png'))
+                        : Image.file(File(imagePath!)),
                   ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      width: 35,
-                      height: 35,
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), color: tPrimaryColor),
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    width: 35,
+                    height: 35,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(100),
+                      color: tPrimaryColor,
+                    ),
+                    child: InkWell(
+                      onTap: () {
+                        pickImage(ImageSource.camera);
+                      },
                       child: const Icon(
                         LineAwesomeIcons.alternate_pencil,
                         color: Colors.black,
@@ -96,10 +105,10 @@ class _AccountPageState extends State<AccountPage> {
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Text(user!.displayName!,
+            Text(user!.displayName ?? '',
                 style: TextStyle(
                   color: isDark ? Colors.black87 : Colors.white,
                 )),
@@ -136,7 +145,7 @@ class _AccountPageState extends State<AccountPage> {
                 },
                 style: ElevatedButton.styleFrom(
                     backgroundColor: tPrimaryColor, side: BorderSide.none, shape: const StadiumBorder()),
-                child: Text('tEditProfile',
+                child: Text(' Edit Profile',
                     style: TextStyle(
                       color: isDark ? Colors.black87 : Colors.white,
                     )),
@@ -146,9 +155,22 @@ class _AccountPageState extends State<AccountPage> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextFormField(
-                decoration: InputDecoration(labelText: 'Edit Display Name'),
+                decoration: const InputDecoration(labelText: 'Edit Display Name'),
                 onTap: () {},
                 controller: nameController,
+                style: TextStyle(
+                  color: isDark ? Colors.black87 : Colors.white,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 30),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextFormField(
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Edit Number phone '),
+                controller: phoneController,
                 style: TextStyle(
                   color: isDark ? Colors.black87 : Colors.white,
                 ),
@@ -164,34 +186,7 @@ class _AccountPageState extends State<AccountPage> {
                       .sendPasswordResetEmail(email: user!.email!)
                       .then((value) => FirebaseAuth.instance.signOut());
                 }),
-            const Divider(),
             const SizedBox(height: 10),
-            ProfileMenuWidget(
-                title: "Logout",
-                icon: LineAwesomeIcons.alternate_sign_in,
-                textColor: Colors.red,
-                endIcon: false,
-                onPress: () async {
-                  await FirebaseAuth.instance.signOut();
-                  // defaultDialog(
-                  //   title: "LOGOUT",
-                  //   titleStyle: const TextStyle(fontSize: 20),
-                  //   content: const Padding(
-                  //     padding: EdgeInsets.symmetric(vertical: 15.0),
-                  //     child: Text("Are you sure, you want to Logout?"),
-                  //   ),
-                  //   confirm: Expanded(
-                  //     child: ElevatedButton(
-                  //       onPressed: () {
-                  //
-                  //       },
-                  //       style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, side: BorderSide.none),
-                  //       child: const Text("Yes"),
-                  //     ),
-                  //   ),
-                  //   cancel: OutlinedButton(onPressed: () =>  (), child: const Text("No")),
-                  // );
-                }),
           ],
         ),
       ),

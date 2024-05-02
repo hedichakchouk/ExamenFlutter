@@ -83,6 +83,7 @@ class _LoginPageState extends State<LoginPage> {
                       ? ShowUpAnimation(
                           delay: 100,
                           child: ListView.builder(
+                            physics: BouncingScrollPhysics(),
                               shrinkWrap: true,
                               itemCount: bgList.length,
                               scrollDirection: Axis.horizontal,

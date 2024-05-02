@@ -10,7 +10,9 @@ class LoginAndSignUp extends StatefulWidget {
 }
 
 class _LoginAndSignUpState extends State<LoginAndSignUp> {
+
   bool isLogin = true;
+
   void togglePage() {
     setState(() {
       isLogin = !isLogin;
