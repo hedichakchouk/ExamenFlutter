@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:examenflutteriit/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
@@ -32,8 +34,11 @@ class _AccountPageState extends State<AccountPage> {
   @override
   void initState() {
     super.initState();
+    print(user);
     if (user != null) {
       nameController.text = user!.displayName ?? "";
+      phoneController.text = user!.phoneNumber ?? "";
+      imagePath = user!.photoURL ?? "";
     }
   }
 
@@ -79,9 +84,9 @@ class _AccountPageState extends State<AccountPage> {
                   height: 120,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(100),
-                    child: imagePath == null
+                    child: (imagePath == null || imagePath =="")
                         ? const Image(image: AssetImage('assets/teacher.png'))
-                        : Image.file(File(imagePath!)),
+                        : imagePath!.contains("http")?Image.network(imagePath!):Image.file(File(imagePath!)),
                   ),
                 ),
                 Positioned(
@@ -117,10 +122,7 @@ class _AccountPageState extends State<AccountPage> {
                 style: TextStyle(
                   color: isDark ? Colors.black87 : Colors.white,
                 )),
-            Text(user!.displayName.toString(),
-                style: TextStyle(
-                  color: isDark ? Colors.black87 : Colors.white,
-                )),
+
             const SizedBox(height: 20),
 
             /// -- BUTTON
@@ -131,11 +133,21 @@ class _AccountPageState extends State<AccountPage> {
                   User? user = FirebaseAuth.instance.currentUser;
                   if (user != null) {
                     try {
-                      await user.updateProfile(displayName: nameController.text);
+                      await user.updateDisplayName( nameController.text);
                       await user.reload();
                       user = FirebaseAuth.instance.currentUser;
-                      print(user);
-                      print("Display name updated to: ${user?.displayName}");
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        showCloseIcon: false,
+                        elevation: 0,
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: Colors.transparent,
+                        content: AwesomeSnackbarContent(
+                          title: 'Succes!',
+                          message: 'Settings Updated successfully',
+                          contentType: ContentType.success,
+                        ),
+                        duration: const Duration(seconds: 3),
+                      ));
                     } catch (e) {
                       print("Failed to update display name: $e");
                     }
@@ -144,7 +156,7 @@ class _AccountPageState extends State<AccountPage> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: tPrimaryColor, side: BorderSide.none, shape: const StadiumBorder()),
+                    backgroundColor: CupertinoColors.activeGreen , side: BorderSide.none, shape: const StadiumBorder()),
                 child: Text(' Edit Profile',
                     style: TextStyle(
                       color: isDark ? Colors.black87 : Colors.white,
@@ -165,17 +177,7 @@ class _AccountPageState extends State<AccountPage> {
             ),
 
             const SizedBox(height: 30),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextFormField(
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Edit Number phone '),
-                controller: phoneController,
-                style: TextStyle(
-                  color: isDark ? Colors.black87 : Colors.white,
-                ),
-              ),
-            ),
+
             ProfileMenuWidget(
                 title: "recieve email to reset password ",
                 icon: LineAwesomeIcons.mail_bulk,

@@ -24,7 +24,7 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     _streamController = StreamController.broadcast();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) => fetchDataFromAPI());
+    _timer = Timer.periodic(const Duration(seconds: 0), (timer) => fetchDataFromAPI());
     fetchDataFromAPI();
   }
 
@@ -33,7 +33,7 @@ class _DashboardPageState extends State<DashboardPage> {
     _timer.cancel();
     _streamController.close();
     super.dispose();
-  }
+   }
 
   Future<void> fetchDataFromAPI() async {
     try {
@@ -54,46 +54,42 @@ class _DashboardPageState extends State<DashboardPage> {
       final isTouched = i == touchedIndex;
       final fontSize = isTouched ? 20.0 : 16.0;
       final radius = isTouched ? 110.0 : 100.0;
-      final widgetSize = isTouched ? 55.0 : 40.0;
+      final widgetSize = isTouched ? 80.0 : 40.0;
       const shadows = [Shadow(color: Colors.black, blurRadius: 2)];
 
       switch (i) {
         case 0:
           return PieChartSectionData(
-            color: Colors.red,
-            value: 40,
-            title: '40%',
+            color: isDark ? Colors.black : Colors.white,
+            value: maleCount.toDouble(),
+            title: 'Male $maleCount',
             radius: radius,
             titleStyle: TextStyle(
               fontSize: fontSize,
               fontWeight: FontWeight.bold,
-              color: const Color(0xffffffff),
+              color: isDark ? Colors.white : Colors.black,
               shadows: shadows,
             ),
-            badgeWidget: _Badge(
-              'assets/icons/ophthalmology-svgrepo-com.svg',
+            badgeWidget: Badge(
+              'assets/boy.jpg',
               size: widgetSize,
-              borderColor:Colors.black54,
+              borderColor: Colors.black54,
             ),
             badgePositionPercentageOffset: .98,
           );
         case 1:
           return PieChartSectionData(
-            color: Colors.blue,
-            value: 30,
-            title: '30%',
+            color: Colors.green,
+            value: femaleCount.toDouble(),
+            title: 'Female $femaleCount',
             radius: radius,
             titleStyle: TextStyle(
               fontSize: fontSize,
               fontWeight: FontWeight.bold,
-              color: const Color(0xffffffff),
+              color: isDark ? Colors.white : Colors.black,
               shadows: shadows,
             ),
-            badgeWidget: _Badge(
-              'assets/icons/librarian-svgrepo-com.svg',
-              size: widgetSize,
-              borderColor: Colors.deepOrangeAccent
-            ),
+            badgeWidget: Badge('assets/girl.jpg', size: widgetSize, borderColor: Colors.deepOrangeAccent),
             badgePositionPercentageOffset: .98,
           );
         default:
@@ -101,8 +97,6 @@ class _DashboardPageState extends State<DashboardPage> {
       }
     });
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -160,8 +154,18 @@ class _DashboardPageState extends State<DashboardPage> {
                   swapAnimationCurve: Curves.linear,
                   swapAnimationDuration: const Duration(milliseconds: 1),
                   PieChartData(
-                    pieTouchData: PieTouchData(longPressDuration: const Duration(milliseconds:10)),
-                    borderData: FlBorderData(show: true),
+                    pieTouchData: PieTouchData(
+                        touchCallback: (FlTouchEvent event, PieTouchResponse? pieTouchResponse) {
+                          setState(() {
+                            if (pieTouchResponse != null && pieTouchResponse.touchedSection != null) {
+                              touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                            } else {
+                              touchedIndex = -1;
+                            }
+                          });
+                        }
+                    ),
+                    borderData: FlBorderData(show: false),
                     sectionsSpace: 0,
                     centerSpaceRadius: 80,
                     sections: showingSections(maleCount, femaleCount, isDark),
@@ -176,16 +180,15 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
     );
   }
+}
 
-
-
-class _Badge extends StatelessWidget {
-  const _Badge(
-      this.svgAsset, {
-        required this.size,
-        required this.borderColor,
-      });
-  final String svgAsset;
+class Badge extends StatelessWidget {
+  const Badge(
+    this.image, {
+    required this.size,
+    required this.borderColor,
+  });
+  final String image;
   final double size;
   final Color borderColor;
 
@@ -212,8 +215,8 @@ class _Badge extends StatelessWidget {
       ),
       padding: EdgeInsets.all(size * .15),
       child: Center(
-        child: SvgPicture.asset(
-          svgAsset,
+        child: Image.asset(
+          image,
         ),
       ),
     );

@@ -7,6 +7,7 @@ import 'package:examenflutteriit/components/lottie/lottie_animation.dart';
 import 'package:examenflutteriit/data/model/studient_model.dart';
 import 'package:examenflutteriit/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'dart:convert';
@@ -92,32 +93,54 @@ class _MainScreenState extends State<MainScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Add a Student"),
+          title: const Text("Add a Student", style: TextStyle(color:CupertinoColors.activeGreen)),
           content: Form(
             key: formKey,
             child: SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
+              physics: const BouncingScrollPhysics(),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   TextFormField(
-                    decoration: InputDecoration(labelText: "Matricule*", hintStyle: TextStyle(color: Colors.green)),
+                    decoration: const InputDecoration(
+                      labelText: "Matricule*",
+                      hintText: "Enter student matricule",
+                      hintStyle: TextStyle(color: Colors.grey),
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.vpn_key, color: CupertinoColors.activeGreen),
+                    ),
                     keyboardType: TextInputType.number,
                     onSaved: (value) => student.matricule = int.tryParse(value ?? ''),
                     validator: (value) => value!.isEmpty ? 'Required' : null,
                   ),
+                  const SizedBox(height: 10),
                   TextFormField(
-                    decoration: InputDecoration(labelText: "Name"),
+                    decoration: const InputDecoration(
+                      labelText: "Name",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.person, color: CupertinoColors.activeGreen),
+                    ),
                     onSaved: (value) => student.nom = value,
                     validator: (value) => value!.isEmpty ? 'Required' : null,
                   ),
+                  const SizedBox(height: 10),
                   TextFormField(
-                    decoration: InputDecoration(labelText: "First Name"),
+                    decoration: const InputDecoration(
+                      labelText: "First Name",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.person_outline, color: CupertinoColors.activeGreen),
+                    ),
                     onSaved: (value) => student.prenom = value,
                     validator: (value) => value!.isEmpty ? 'Required' : null,
                   ),
+                  const SizedBox(height: 10),
                   TextFormField(
                     controller: dateController,
-                    decoration: InputDecoration(labelText: "Date of Birth"),
+                    decoration: const InputDecoration(
+                      labelText: "Date of Birth",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.calendar_today, color: CupertinoColors.activeGreen),
+                    ),
                     readOnly: true,
                     onTap: () async {
                       final DateTime? pickedDate = await showDatePicker(
@@ -133,8 +156,13 @@ class _MainScreenState extends State<MainScreen> {
                     },
                     validator: (value) => value!.isEmpty ? 'Required' : null,
                   ),
+                  const SizedBox(height: 10),
                   DropdownButtonFormField(
-                    decoration: InputDecoration(labelText: "Gender"),
+                    decoration: const InputDecoration(
+                      labelText: "Gender",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.transgender, color: CupertinoColors.activeGreen),
+                    ),
                     value: student.gender,
                     onChanged: (String? newValue) {
                       setState(() {
@@ -155,13 +183,13 @@ class _MainScreenState extends State<MainScreen> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: Colors.redAccent)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Save'),
+              child: const Text('Save', style: TextStyle(color: Colors.green,fontSize: 18)),
               onPressed: () {
                 if (formKey.currentState!.validate()) {
                   formKey.currentState!.save();
@@ -179,6 +207,7 @@ class _MainScreenState extends State<MainScreen> {
       },
     );
   }
+
 
   Future<void> addStudent(int matricule, String nom, String prenom, String dateInscription, String gender, String dateOfBirth) async {
     try {
@@ -258,7 +287,7 @@ class _MainScreenState extends State<MainScreen> {
     final Email email = Email(
       body: 'Attached is the list of students',
       subject: 'List of Students',
-      recipients: ['hedichakchoukk@gmail.com'],
+      recipients: ['hedichakchoukk@gmail.com','belguithbilel99@gmail.com'],
       attachmentPaths: [filePath],
       isHTML: false,
     );
@@ -355,7 +384,7 @@ class _MainScreenState extends State<MainScreen> {
         future: ListStudents,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(
                 child: LottieAnimation(
@@ -418,56 +447,73 @@ class _MainScreenState extends State<MainScreen> {
                                     context: context,
                                     builder: (BuildContext context) {
                                       return AlertDialog(
-                                        title: Text("Edit Student"),
+                                        title: Text("Edit Student", style: TextStyle(color: CupertinoColors.activeGreen)),
                                         content: Form(
                                           key: formKey,
                                           child: SingleChildScrollView(
                                             child: Column(
+                                              mainAxisSize: MainAxisSize.min,
                                               children: <Widget>[
                                                 TextFormField(
                                                   initialValue: student.matricule.toString(),
-                                                  decoration: InputDecoration(labelText: "Matricule"),
+                                                  decoration: InputDecoration(
+                                                    labelText: "Matricule",
+                                                    border: OutlineInputBorder(),
+                                                    prefixIcon: Icon(Icons.vpn_key, color: CupertinoColors.activeGreen),
+                                                  ),
                                                   readOnly: true,
                                                 ),
+                                                SizedBox(height: 10),
                                                 TextFormField(
                                                   initialValue: student.nom,
-                                                  decoration: InputDecoration(labelText: "Name"),
+                                                  decoration: InputDecoration(
+                                                    labelText: "Name",
+                                                    border: OutlineInputBorder(),
+                                                    prefixIcon: Icon(Icons.person, color: CupertinoColors.activeGreen),
+                                                  ),
                                                   onSaved: (value) => student.nom = value,
                                                   validator: (value) => value!.isEmpty ? 'Required' : null,
                                                 ),
+                                                SizedBox(height: 10),
                                                 TextFormField(
                                                   initialValue: student.prenom,
-                                                  decoration: InputDecoration(labelText: "First Name"),
+                                                  decoration: InputDecoration(
+                                                    labelText: "First Name",
+                                                    border: OutlineInputBorder(),
+                                                    prefixIcon: Icon(Icons.person_outline, color: CupertinoColors.activeGreen),
+                                                  ),
                                                   onSaved: (value) => student.prenom = value,
                                                   validator: (value) => value!.isEmpty ? 'Required' : null,
                                                 ),
+                                                SizedBox(height: 10),
                                                 TextFormField(
                                                   initialValue: student.dateOfBirth,
-                                                  decoration: InputDecoration(labelText: "Date of Birth"),
+                                                  decoration: InputDecoration(
+                                                    labelText: "Date of Birth",
+                                                    border: OutlineInputBorder(),
+                                                    prefixIcon: Icon(Icons.calendar_today, color: CupertinoColors.activeGreen),
+                                                  ),
                                                   readOnly: true,
-                                                  onTap: () {
-                                                    TextFormField(
-                                                      controller: dateController,
-                                                      decoration: InputDecoration(labelText: "Date of Birth"),
-                                                      onTap: () async {
-                                                        final DateTime? pickedDate = await showDatePicker(
-                                                          context: context,
-                                                          initialDate: DateTime.now(),
-                                                          firstDate: DateTime(1900),
-                                                          lastDate: DateTime.now(),
-                                                        );
-                                                        if (pickedDate != null) {
-                                                          String formattedDate =
-                                                              DateFormat('yyyy-MM-dd').format(pickedDate);
-                                                          dateController.text = formattedDate;
-                                                        }
-                                                      },
-                                                      validator: (value) => value!.isEmpty ? 'Required' : null,
+                                                  onTap: () async {
+                                                    final DateTime? pickedDate = await showDatePicker(
+                                                      context: context,
+                                                      initialDate: DateTime.now(),
+                                                      firstDate: DateTime(1900),
+                                                      lastDate: DateTime.now(),
                                                     );
+                                                    if (pickedDate != null) {
+                                                      String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+                                                      dateController.text = formattedDate;
+                                                    }
                                                   },
                                                 ),
+                                                SizedBox(height: 10),
                                                 DropdownButtonFormField(
-                                                  decoration: InputDecoration(labelText: "Gender"),
+                                                  decoration: InputDecoration(
+                                                    labelText: "Gender",
+                                                    border: OutlineInputBorder(),
+                                                    prefixIcon: Icon(Icons.transgender, color: CupertinoColors.activeGreen),
+                                                  ),
                                                   value: student.gender,
                                                   onChanged: (String? newValue) {
                                                     setState(() {
@@ -482,20 +528,20 @@ class _MainScreenState extends State<MainScreen> {
                                                     );
                                                   }).toList(),
                                                   validator: (value) => value == null ? 'Required' : null,
-                                                )
+                                                ),
                                               ],
                                             ),
                                           ),
                                         ),
                                         actions: <Widget>[
                                           TextButton(
-                                            child: Text('Cancel'),
+                                            child: Text('Cancel', style: TextStyle(color: Colors.redAccent)),
                                             onPressed: () {
                                               Navigator.of(context).pop();
                                             },
                                           ),
                                           TextButton(
-                                            child: Text('Save'),
+                                            child: Text('Save', style: TextStyle(color: Colors.green,fontSize: 18)),
                                             onPressed: () {
                                               if (formKey.currentState!.validate()) {
                                                 formKey.currentState!.save();
@@ -518,8 +564,9 @@ class _MainScreenState extends State<MainScreen> {
                                   );
                                 } catch (error) {
                                   print('Failed to fetch student details: $error');
-                                };
+                                }
                               }),
+
                           IconButton(
                             icon: Icon(
                               Icons.delete_sharp,
@@ -530,19 +577,19 @@ class _MainScreenState extends State<MainScreen> {
                                 context: context,
                                 builder: (BuildContext context) {
                                   return AlertDialog(
-                                    title: Text("Confirm Delete"),
-                                    content: Text("Are you sure you want to delete this student?"),
+                                    title: const Text("Confirm Delete"),
+                                    content: const Text("Are you sure you want to delete this student?"),
                                     actions: <Widget>[
                                       TextButton(
                                         onPressed: () => Navigator.of(context).pop(false),
-                                        child: Text("Cancel"),
+                                        child: const Text("Cancel"),
                                       ),
                                       TextButton(
                                         onPressed: () {
                                           Navigator.of(context).pop(true);
                                           deleteStudent(student.matricule!);
                                         },
-                                        child: Text(
+                                        child: const Text(
                                           "Delete",
                                           style:
                                               TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16),
@@ -562,7 +609,7 @@ class _MainScreenState extends State<MainScreen> {
               );
             }
           } else {
-            return Center(
+            return const Center(
                 child: Text(
               'No students found',
               style: TextStyle(color: Colors.black),

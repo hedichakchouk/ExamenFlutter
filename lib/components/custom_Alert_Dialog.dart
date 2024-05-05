@@ -22,6 +22,7 @@ class CustomAlertDialog {
             onPressed: () async{
               Navigator.pop(context);
               await FirebaseAuth.instance.signOut();
+
             },
             child: Text(context.l10n.yes),
           ),

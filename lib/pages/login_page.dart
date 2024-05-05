@@ -30,6 +30,7 @@ class _LoginPageState extends State<LoginPage> {
   ValueNotifier userCredential = ValueNotifier('');
   bool passwordVisible = false;
   bool rememberPassword = false;
+  final user = FirebaseAuth.instance.currentUser;
 
   @override
   void initState() {
@@ -43,6 +44,8 @@ class _LoginPageState extends State<LoginPage> {
         isLoading = true;
       });
       await FirebaseAuth.instance.signInWithEmailAndPassword(email: email.text, password: password.text);
+      print(user);
+
       setState(() {
         isLoading = false;
       });
@@ -83,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
                       ? ShowUpAnimation(
                           delay: 100,
                           child: ListView.builder(
-                            physics: BouncingScrollPhysics(),
+                            physics: const BouncingScrollPhysics(),
                               shrinkWrap: true,
                               itemCount: bgList.length,
                               scrollDirection: Axis.horizontal,
@@ -271,7 +274,8 @@ class _LoginPageState extends State<LoginPage> {
                           const Spacer(),
                           InkWell(
                             onTap: () {
-                              if (formkey.currentState!.validate()) {
+                              final formState = formkey.currentState;
+                              if (formState != null && formState.validate()) {
                                 if (rememberPassword) {
                                   UserSettingsPreferences.setSavePassword(password.text);
                                 }
@@ -281,35 +285,72 @@ class _LoginPageState extends State<LoginPage> {
                             child: Container(
                               height: 40,
                               width: double.infinity,
-                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30)),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(30),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 1,
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
                               alignment: Alignment.center,
                               child: isLoading
                                   ? const CircularProgressIndicator(
-                                      color: Colors.black,
-                                    )
-                                  : TextUtil(
-                                      text: "Log In",
-                                      color: Colors.black,
-                                    ),
+                                color: Colors.black,
+                              )
+                                  : const Text(
+                                'Login',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
                           const Spacer(),
                           ElevatedButton(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Text('Sign in with Google'),
-                                Image.asset(
-                                  'assets/images/google_icon.png',
-                                  height: 20,
-                                  width: 20,
-                                )
-                              ],
+                            style: ElevatedButton.styleFrom(
+                              primary: Colors.white,
+                              onPrimary: Colors.black,
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                             onPressed: () async {
-                              userCredential.value = await signInWithGoogle();
-                              if (userCredential.value != null) print(userCredential.value.user!.email);
+                              try {
+                                userCredential.value = await signInWithGoogle();
+
+                              } catch (e) {
+                                print('Sign-in failed: $e');
+                              }
                             },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    'assets/images/google_icon.png',
+                                    height: 24,
+                                    width: 24,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  const Text(
+                                    'Sign in with Google',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                           const Spacer(),
                           InkWell(
@@ -337,17 +378,26 @@ class _LoginPageState extends State<LoginPage> {
 Future<dynamic> signInWithGoogle() async {
   try {
     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+    print('Google User: $googleUser');
+    if (googleUser == null) {
+      print('User cancelled the sign-in process.');
+      return null;
+    }
 
-    final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    print('Google Auth: $googleAuth');
 
     final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth?.accessToken,
-      idToken: googleAuth?.idToken,
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
     );
+    print('Firebase Credential: $credential');
 
     return await FirebaseAuth.instance.signInWithCredential(credential);
   } on Exception catch (e) {
-    print('exception->$e');
+    print('Google sign-in exception: ${e.toString()}');
+    return null;
+
   }
 }
 

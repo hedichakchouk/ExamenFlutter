@@ -1,43 +1,30 @@
-import 'package:examenflutteriit/api/firebase_api.dart';
+
 import 'package:examenflutteriit/application.dart';
 import 'package:examenflutteriit/l10n/l10n.dart';
 import 'package:examenflutteriit/pages/auth_page.dart';
-import 'package:examenflutteriit/pages/login_or_signUp.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
-import 'package:examenflutteriit/l10n/l10n.dart';
 
 import 'firebase_options.dart';
 
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // If you're going to use other Firebase services in the background, such as Firestore,
-  // make sure you call `initializeApp` before using other Firebase services.
-  await Firebase.initializeApp();
 
-  print("Handling a background message: ${message.messageId}");
-}
 
 void main() async {
-// await FirebaseApi().initNotifications();
-  WidgetsFlutterBinding.ensureInitialized();
+   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await GetStorage.init('USER_SETTINGS');
   final box = GetStorage('USER_SETTINGS');
-  String? storedLocaleCode = box.read('locale') ?? 'en'; // Fallback to 'en' if not set
+  String? storedLocaleCode = box.read('locale') ?? 'en';
 
   Locale initialLocale = Locale(storedLocaleCode);
-  bool isDarkMode = box.read('isDarkMode') ?? false; // Read theme setting from storage
+  bool isDarkMode = box.read('isDarkMode') ?? false;
 
   await Application.getInstance().init();
-// FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-// await FirebaseMessaging.instance.setAutoInitEnabled(true);
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => LocaleProvider(initialLocale)),
